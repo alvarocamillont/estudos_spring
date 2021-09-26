@@ -1,14 +1,17 @@
 package com.example.coffee_book.controllers;
 
 import com.example.coffee_book.models.Coffee;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@RestController
+@RequestMapping("/coffees")
 public class RestApiDemoController {
-    private static final String path = "/coffees";
     private List<Coffee> coffees = new ArrayList<>();
 
     public RestApiDemoController(){
@@ -20,12 +23,12 @@ public class RestApiDemoController {
         ));
     }
 
-    @RequestMapping(value=path,method = RequestMethod.GET)
+    @GetMapping
     Iterable<Coffee> getCoffees(){
         return coffees;
     }
 
-    @GetMapping(path+"/{id}")
+    @GetMapping("/{id}")
     Optional<Coffee> getCoffeeById(@PathVariable String id){
         for (Coffee c:coffees){
             if(c.getId().equals(id)){
@@ -36,14 +39,14 @@ public class RestApiDemoController {
         return Optional.empty();
     }
 
-    @PostMapping(path)
+    @PostMapping
     Coffee postCoffee(@RequestBody Coffee coffee){
         coffees.add(coffee);
         return coffee;
     }
 
-    @PutMapping(path+"/{id}")
-    Coffee putCoffee(@PathVariable String id,@RequestBody Coffee coffee){
+    @PutMapping("/{id}")
+    ResponseEntity<Coffee> putCoffee(@PathVariable String id,@RequestBody Coffee coffee){
         int coffeeIndex = -1;
         for (Coffee c:coffees){
             if (c.getId().equals(id)){
@@ -52,10 +55,11 @@ public class RestApiDemoController {
             }
         }
 
-        return (coffeeIndex == -1) ? postCoffee(coffee):coffee;
+        return (coffeeIndex == -1) ? new ResponseEntity<>(postCoffee(coffee), HttpStatus.CREATED) :
+                new ResponseEntity<>(coffee, HttpStatus.OK);
     }
 
-    @DeleteMapping(path+"/{id}")
+    @DeleteMapping("/{id}")
     void deletCoffee(@PathVariable String id ){
        coffees.removeIf(c->c.getId().equals(id));
     }
