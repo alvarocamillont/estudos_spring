@@ -18,12 +18,7 @@ public class RestApiDemoController {
 
     public RestApiDemoController(CoffeeRepository coffeeRepository){
         this.coffeeRepository = coffeeRepository;
-        this.coffeeRepository.saveAll(List.of(
-                new Coffee("Café Cereza"),
-                new Coffee("Café Ganador"),
-                new Coffee("Café Lareño"),
-                new Coffee("Café Trê Pontas")
-        ));
+
     }
 
     @GetMapping
@@ -43,7 +38,7 @@ public class RestApiDemoController {
 
     @PutMapping("/{id}")
     ResponseEntity<Coffee> putCoffee(@PathVariable String id,@RequestBody Coffee coffee){
-        HttpStatus status = (!coffeeRepository.existsById(id)) ? HttpStatus.CREATED:HttpStatus.OK;
+        HttpStatus status = coffeeRepository.existsById(id) ? HttpStatus.OK:HttpStatus.CREATED;
         return new ResponseEntity<>(coffeeRepository.save(coffee), status);
     }
 
