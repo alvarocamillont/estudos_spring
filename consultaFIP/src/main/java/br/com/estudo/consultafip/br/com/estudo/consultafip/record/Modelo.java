@@ -4,4 +4,7 @@ public record Modelo(
         String codigo,
         String nome
 ) {
+    public String toString() {
+        return "Cód: " + codigo + " Descrição: " + nome;
+    }
 }

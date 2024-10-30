@@ -1,6 +1,8 @@
 package br.com.estudo.consultafip.br.com.estudo.consultafip.services;
 
 import br.com.estudo.consultafip.br.com.estudo.consultafip.record.Marca;
+import br.com.estudo.consultafip.br.com.estudo.consultafip.record.Modelo;
+import br.com.estudo.consultafip.br.com.estudo.consultafip.record.Modelos;
 import br.com.estudo.consultafip.enums.Categorias;
 
 import java.util.Comparator;
@@ -9,6 +11,7 @@ import java.util.Scanner;
 public class Principal {
     private Scanner input = new Scanner(System.in);
     private final String URL_BASE = "https://parallelum.com.br/fipe/api/v1/";
+    private String urlMarca;
     private ConsultaAPI consultaAPI = new ConsultaAPI();
     private ConverteDados conversor = new ConverteDados();
 
@@ -16,19 +19,32 @@ public class Principal {
         System.out.println("Seja bem vindo!");
         var categoria = this.selecionaCategoria();
         var marca = this.selectionaMarca(categoria);
+        var modelo = this.selectionaModelo(marca);
 
         System.out.println(marca);
 
     }
 
+    private String selectionaModelo(String marca) {
+        var json = this.consultaAPI.obterDados(this.urlMarca + "/" + marca + "/modelos");
+        var modelos = this.conversor.obterDados(json, Modelos.class);
+        modelos.modelos().stream()
+                .sorted(Comparator.comparing(Modelo::codigo))
+                .forEach(System.out::println);
+
+        System.out.println("Selecione o modelo:");
+
+        return this.input.next();
+    }
+
     private String selectionaMarca(Categorias categoria) {
 
-        var url = switch (categoria){
+        this.urlMarca = switch (categoria){
             case CARRO -> URL_BASE + "carros/marcas";
             case CAMINHAO -> URL_BASE + "caminhoes/marcas";
             case MOTO -> URL_BASE + "motos/marcas";
         };
-        var json = this.consultaAPI.obterDados(url);
+        var json = this.consultaAPI.obterDados(this.urlMarca);
         var marcas = this.conversor.obterlista(json, Marca.class);
 
         marcas.stream()
