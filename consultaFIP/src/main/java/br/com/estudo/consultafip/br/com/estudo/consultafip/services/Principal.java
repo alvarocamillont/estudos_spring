@@ -1,17 +1,18 @@
 package br.com.estudo.consultafip.br.com.estudo.consultafip.services;
 
-import br.com.estudo.consultafip.br.com.estudo.consultafip.record.Marca;
-import br.com.estudo.consultafip.br.com.estudo.consultafip.record.Modelo;
-import br.com.estudo.consultafip.br.com.estudo.consultafip.record.Modelos;
+import br.com.estudo.consultafip.br.com.estudo.consultafip.record.*;
 import br.com.estudo.consultafip.enums.Categorias;
 
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Scanner;
 
 public class Principal {
     private Scanner input = new Scanner(System.in);
     private final String URL_BASE = "https://parallelum.com.br/fipe/api/v1/";
     private String urlMarca;
+    private String urlModelo;
     private ConsultaAPI consultaAPI = new ConsultaAPI();
     private ConverteDados conversor = new ConverteDados();
 
@@ -20,13 +21,36 @@ public class Principal {
         var categoria = this.selecionaCategoria();
         var marca = this.selectionaMarca(categoria);
         var modelo = this.selectionaModelo(marca);
+        var listaValores = this.mostraModelo(modelo);
 
-        System.out.println(marca);
+
 
     }
 
+    private List<Valor> mostraModelo(String modelo) {
+        var json = this.consultaAPI.obterDados(this.urlModelo+ "/" + modelo + "/anos");
+        var listaAnos = this.conversor.obterlista(json, Ano.class);
+        var listaVeiculo = new ArrayList<Valor>();
+
+        listaAnos.stream().forEach(ano->{
+            var veiculo = this.getValorVeiculo(ano.codigo(),modelo);
+            listaVeiculo.add(veiculo);
+        });
+
+        listaVeiculo.forEach(System.out::println);
+
+        return listaVeiculo;
+    }
+
+    private Valor getValorVeiculo(String ano, String modelo) {
+        var url = this.urlModelo+ "/" + modelo + "/anos/" + ano;
+        var json = this.consultaAPI.obterDados(url);
+        return this.conversor.obterDados(json,Valor.class);
+    }
+
     private String selectionaModelo(String marca) {
-        var json = this.consultaAPI.obterDados(this.urlMarca + "/" + marca + "/modelos");
+        this.urlModelo = this.urlMarca + "/" + marca + "/modelos";
+        var json = this.consultaAPI.obterDados(this.urlModelo);
         var modelos = this.conversor.obterDados(json, Modelos.class);
         modelos.modelos().stream()
                 .sorted(Comparator.comparing(Modelo::codigo))
